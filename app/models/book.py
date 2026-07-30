@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from sqlalchemy import ForeignKey, Column, Table
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.core.database import Base
@@ -11,6 +13,16 @@ book_authors = Table(
     )
 
 
+class Series(Base):
+    __tablename__ = "series"
+
+    series_id: Mapped[int] = mapped_column(primary_key=True)
+    series_title: Mapped[str] = mapped_column(index=True)
+    series_description: Mapped[str | None] = mapped_column(default=None)
+
+    books: Mapped[list[Book]] = relationship(back_populates="series")
+
+
 class Book(Base):
     __tablename__ = "books"
 
@@ -22,8 +34,8 @@ class Book(Base):
     book_original_language: Mapped[str]
     book_series_id: Mapped[int | None] = mapped_column(ForeignKey("series.series_id", ondelete="SET NULL"), default=None)
 
-    series: Mapped["Series" | None] = relationship(back_populates="books")
-    authors: Mapped[list["Author"]] = relationship(
+    series: Mapped[Series | None] = relationship(back_populates="books")
+    authors: Mapped[list[Author]] = relationship(
         secondary=book_authors, 
         back_populates="books"
     )
@@ -38,20 +50,10 @@ class Author(Base):
     author_citizenship: Mapped[str | None] = mapped_column(default=None)
     author_biography: Mapped[str | None] = mapped_column(default=None)
 
-    books: Mapped[list["Book"]] = relationship(
+    books: Mapped[list[Book]] = relationship(
         secondary=book_authors,
         back_populates="authors"
     )
-
-
-class Series(Base):
-    __tablename__ = "series"
-
-    series_id: Mapped[int] = mapped_column(primary_key=True)
-    series_title: Mapped[str] = mapped_column(index=True)
-    series_description: Mapped[str | None] = mapped_column(default=None)
-
-    books: Mapped[list["Book"]] = relationship(back_populates="series")
 
 
 class User(Base):
